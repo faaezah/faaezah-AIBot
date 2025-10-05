@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Artemis</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+        }
+        #chatbot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 360px;
+            background-color: #ffffff;
+            border: 2px solid #a50707;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        #chatbot.open {
+            max-height: 722px;
+            opacity: 1;
+            pointer-events: auto;
+            overflow-y: auto;
+        }
+        #chat-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #a50707;
+            color: white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 2em;
+            text-align: center;
+            line-height: 60px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 999;
+        }
+        #header {
+            background-color: #a50707;
+            color: white;
+            padding: 1em;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        #chat-area {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 1em;
+            height: 250px;
+            overflow-y: auto;
+        }
+        #close-chat {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.2em;
+    color: white;
+    background-color: transparent;
+    cursor: pointer;
+    padding: 0.2em 0.5em;
+    border-radius: 4px;
+    font-weight: bold;
+}
+    #close-chat:hover {
+    color: #ffdddd;
+}
+
+        .response-box {
+            background-color: #fff2f2;
+            border-left: 4px solid #a50707;
+            padding: 1em;
+            margin-top: 1em;
+            border-radius: 6px;
+        }
+        .label {
+            font-weight: bold;
+            color: #a50707;
+            margin-bottom: 0.5em;
+        }
+        .response {
+            font-size: 1em;
+            color: #333;
+            line-height: 1.4em;
+        }
+        #form-area {
+            background-color: #f0f0f0;
+            padding: 1em;
+        }
+        #userInput {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            width: 100%;
+            margin-top: 0.5em;
+            padding: 0.75em;
+            background-color: #a50707;
+            border: none;
+            color: white;
+            font-weight: bold;
+            font-size: 1em;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #8c0606;
+        }
+        #credit {
+            background-color: #f0f0f0;
+            text-align: center;
+            font-size: 0.85em;
+            color: #a50707;
+            padding: 0.5em;
+            border-top: 1px solid #ccc;
+            font-style: italic;
+        }
+        #typing-animation {
+            font-style: italic;
+            color: #a50707;
+            padding: 0.5em;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Your chatbot HTML content goes here -->
+
+
+<!--Asked AI for help on CSS -->
+
+<!-- Chat Icon -->
+<div id="chat-icon" role="button" aria-label="Open chat" onclick="toggleChat()">💬</div>
+
+<!-- Chatbot Panel -->
+<div id="chatbot">
+    <div id="header">Artemis</div>
+    <div id="close-chat" onclick="toggleChat()" title="Close chat">✖</div>
+    <div id="chat-area">
+        <div class="response-box">
+            <div class="label">Welcome, fellow space enthusiast!</div>
+            <div class="response">I'm Artemis!</div>
+        </div>
+<div class="response-box" id="botResponse">
+    I only talk about coral reef. Ask me about the ocean ecosystems.
+</div>
+        </div>
+        <div id="typing-animation">Typing...</div>
+
+    <div id="form-area">
+<form onsubmit="event.preventDefault(); showResponse();">
+<input type="text" id="userInput" name="message" placeholder="Ask me anything..." required>
+            <button type="submit">Send</button>
+        </form>
+        <button onclick="sendEcoTip()">🌱 Eco Tip</button>
+        <button onclick="startVoiceInput()">🎙️ Speak</button>
+
+    </div>
+    <div id="credit">Artemis was programmed by Faaezah Ahmed Shaik · Created exclusively for CyberStars · NASA Space Apps 2025</div>
+</div>
+
+
+<!-- Minimal JS to toggle chatbot and enable voice -->
+<!-- AI helped with this -->
+<script>
+function toggleChat() {
+    const chatbot = document.getElementById('chatbot');
+    chatbot.classList.toggle('open');
+}
+
+let selectedVoice = null;
+
+function loadVoices() {
+    const voices = speechSynthesis.getVoices();
+    selectedVoice = voices.find(v => v.name.includes("Daniel") || (v.lang === "en-GB" && v.name.toLowerCase().includes("male")));
+}
+
+function showResponse() {
+    const input = document.getElementById('userInput').value;
+    const chatArea = document.getElementById('chat-area');
+
+    fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const responseBox = document.createElement("div");
+        responseBox.className = "response-box";
+        responseBox.innerHTML = `
+            <div class="label">You asked:</div>
+            <div class="response">${input}</div>
+            <div class="label">Artemis says:</div>
+            <div class="response">${data.reply}</div>
+        `;
+        chatArea.appendChild(responseBox);
+        document.getElementById('userInput').value = "";
+
+        speak(data.reply);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function sendEcoTip() {
+    fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: "ecology tip" })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const chatArea = document.getElementById('chat-area');
+        const responseBox = document.createElement("div");
+        responseBox.className = "response-box";
+        responseBox.innerHTML = `
+            <div class="label">Eco Tip:</div>
+            <div class="response">${data.reply}</div>
+        `;
+        chatArea.appendChild(responseBox);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function startVoiceInput() {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('userInput').value = transcript;
+        showResponse();
+    };
+
+    recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+    };
+
+    recognition.start();
+}
+
+function speak(text) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-GB';
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    if (selectedVoice) {
+        utterance.voice = selectedVoice;
+    }
+    speechSynthesis.speak(utterance);
+}
+
+if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+loadVoices();
+</script>
+
+</body>
+</html>
